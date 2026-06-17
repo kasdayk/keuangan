@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a5f4a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Keuangan Eryu</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1a5f4a;
+      --green-light: #2d8a6b;
+      --red: #c0392b;
+      --bg: #f0f4f2;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --muted: #7a8f85;
+      --border: #dde8e3;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, var(--green), var(--green-light));
+      color: white;
+      padding: 20px 20px 16px;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    header p  { font-size: 0.8rem; opacity: 0.75; margin-top: 3px; }
+
+    /* NAV */
+    nav {
+      display: flex;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .tab {
+      flex: 1;
+      padding: 13px 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color .2s, border-color .2s;
+      user-select: none;
+    }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+    /* PAGES */
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; }
+
+    /* FORM */
+    .form-section { font-size: 0.7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .8px; margin: 18px 0 10px; }
+    .form-section:first-child { margin-top: 4px; }
+
+    .row { display: grid; gap: 10px; }
+    .row.col2 { grid-template-columns: 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--card);
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--green-light);
+      box-shadow: 0 0 0 3px rgba(45,138,107,.12);
+    }
+    .sel-wrap { position: relative; }
+    .sel-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    /* JUMLAH */
+    .jumlah-wrap { position: relative; }
+    .jumlah-wrap input { padding-left: 40px; }
+    .jumlah-prefix {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    /* SUBMIT */
+    .btn-submit {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--green), var(--green-light));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .3px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-submit:active { transform: scale(.98); opacity: .9; }
+    .btn-submit:disabled { background: #b0c4bb; cursor: not-allowed; transform: none; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--green);
+      color: white;
+      padding: 12px 22px;
+      border-radius: 24px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      transition: transform .3s cubic-bezier(.175,.885,.32,1.275);
+      z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.err   { background: var(--red); }
+
+    /* RIWAYAT */
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .filter-row .sel-wrap { flex: 1; }
+    .filter-row select { padding: 10px 12px; font-size: 0.85rem; }
+
+    .tx-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .tx-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 13px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      gap: 10px;
+    }
+    .tx-keterangan { font-weight: 600; font-size: 0.92rem; }
+    .tx-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .badge {
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-suami { background: #dbeafe; color: #1d4ed8; }
+    .badge-istri  { background: #fce7f3; color: #9d174d; }
+    .tx-kat { font-size: 0.75rem; color: var(--muted); }
+    .tx-tgl { font-size: 0.75rem; color: var(--muted); }
+
+    .tx-right { text-align: right; flex-shrink: 0; }
+    .tx-jumlah { font-weight: 700; font-size: 0.95rem; color: var(--red); }
+    .tx-jumlah.masuk { color: var(--green); }
+    .tx-metode { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 48px 20px;
+      font-size: 0.9rem;
+    }
+    .empty span { display: block; font-size: 2rem; margin-bottom: 8px; }
+
+    .loading-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #e8f0ec 25%, #d4e5da 50%, #e8f0ec 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 12px;
+      height: 68px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Keuangan Eryu</h1>
+  <p id="hdr-date"></p>
+</header>
+
+<nav>
+  <div class="tab active" data-page="input">➕ Input</div>
+  <div class="tab"        data-page="riwayat">📋 Riwayat</div>
+</nav>
+
+<!-- ===== INPUT ===== -->
+<div class="page active" id="page-input">
+  <form id="form-tx" autocomplete="off">
+
+    <div class="form-section">Waktu & Pelaku</div>
+    <div class="row col2">
+      <div class="field">
+        <label>Tanggal</label>
+        <input type="date" id="f-tanggal" required>
+      </div>
+      <div class="field">
+        <label>Siapa</label>
+        <div class="sel-wrap">
+          <select id="f-siapa" required>
+            <option value="">Pilih...</option>
+            <option value="Suami">Suami</option>
+            <option value="Istri">Istri</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">Jenis & Kategori</div>
+    <div class="row col2">
+      <div class="field">
+        <label>Jenis</label>
+        <div class="sel-wrap">
+          <select id="f-jenis" required>
+            <option value="">Pilih...</option>
+            <option value="Pengeluaran">Pengeluaran</option>
+            <option value="Pemasukan">Pemasukan</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Metode</label>
+        <div class="sel-wrap">
+          <select id="f-metode" required>
+            <option value="">Pilih...</option>
+            <option value="Cash">Cash</option>
+            <option value="Non-Tunai">Non-Tunai</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="field">
+        <label>Kategori</label>
+        <div class="sel-wrap">
+          <select id="f-kategori" required>
+            <option value="">— pilih Siapa dulu —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">Detail</div>
+    <div class="field" style="margin-bottom:10px">
+      <label>Keterangan</label>
+      <input type="text" id="f-keterangan" placeholder="cth: Tagihan listrik Juni" required>
+    </div>
+    <div class="field">
+      <label>Jumlah</label>
+      <div class="jumlah-wrap">
+        <span class="jumlah-prefix">Rp</span>
+        <input type="number" id="f-jumlah" placeholder="0" min="1" required>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="btn-submit">Simpan Transaksi</button>
+  </form>
+</div>
+
+<!-- ===== RIWAYAT ===== -->
+<div class="page" id="page-riwayat">
+  <div class="filter-row">
+    <div class="sel-wrap">
+      <select id="fil-siapa">
+        <option value="">Semua</option>
+        <option value="Suami">Suami</option>
+        <option value="Istri">Istri</option>
+      </select>
+    </div>
+    <div class="sel-wrap">
+      <select id="fil-jenis">
+        <option value="">Semua Jenis</option>
+        <option value="Pengeluaran">Pengeluaran</option>
+        <option value="Pemasukan">Pemasukan</option>
+      </select>
+    </div>
+  </div>
+  <div class="tx-list" id="tx-list">
+    <div class="loading-row">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── GANTI INI setelah deploy Apps Script ──
+  const API = 'https://script.google.com/macros/s/AKfycby10NW6cv2SbVAEUhaaSY2ScLVQmYCoHs35tFUddx5Q6lHtAss2TpkKeLX9QZo4NeFFtA/exec';
+
+  const KATEGORI = {
+    Suami: ['Keluarga & Orang Tua','Tagihan Rutin','Pekerjaan',
+            'Anak & Sekolah','Konsumsi & Belanja','Gaya Hidup',
+            'Pemeliharaan','Tabungan & Sosial'],
+    Istri:  ['Keluarga & Orang Tua','Pekerjaan','Anak & Sekolah',
+             'Gaya Hidup','Tabungan & Sosial']
+  };
+
+  // ── Init ──
+  const $  = id => document.getElementById(id);
+  const today = () => new Date().toISOString().split('T')[0];
+
+  $('f-tanggal').value = today();
+  $('hdr-date').textContent = new Date().toLocaleDateString('id-ID',
+    { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  // ── Nav tabs ──
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab, .page').forEach(el => el.classList.remove('active'));
+      tab.classList.add('active');
+      $('page-' + tab.dataset.page).classList.add('active');
+      if (tab.dataset.page === 'riwayat') loadRiwayat();
+    });
+  });
+
+  // ── Dropdown kategori ──
+  $('f-siapa').addEventListener('change', () => {
+    const siapa = $('f-siapa').value;
+    const sel   = $('f-kategori');
+    if (!siapa) {
+      sel.innerHTML = '<option value="">— pilih Siapa dulu —</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">Pilih kategori...</option>' +
+      KATEGORI[siapa].map(k => `<option value="${k}">${k}</option>`).join('');
+  });
+
+  // ── Toast ──
+  let toastTimer;
+  function toast(msg, err = false) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (err ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = 'toast', 3200);
+  }
+
+  // ── Format rupiah ──
+  const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+
+  // ── Submit transaksi ──
+  $('form-tx').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = $('btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan…';
+
+    const params = new URLSearchParams({
+      action    : 'add',
+      tanggal   : $('f-tanggal').value,
+      siapa     : $('f-siapa').value,
+      jenis     : $('f-jenis').value,
+      kategori  : $('f-kategori').value,
+      keterangan: $('f-keterangan').value,
+      jumlah    : $('f-jumlah').value,
+      metode    : $('f-metode').value,
+    });
+
+    try {
+      const res  = await fetch(API + '?' + params);
+      const json = await res.json();
+      if (json.ok) {
+        toast('✓ Transaksi tersimpan!');
+        $('form-tx').reset();
+        $('f-tanggal').value = today();
+        $('f-kategori').innerHTML = '<option value="">— pilih Siapa dulu —</option>';
+      } else {
+        toast('Gagal: ' + (json.error || 'unknown'), true);
+      }
+    } catch {
+      toast('Gagal menyimpan. Cek koneksi.', true);
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Simpan Transaksi';
+  });
+
+  // ── Load riwayat ──
+  async function loadRiwayat() {
+    const list = $('tx-list');
+    list.innerHTML = '<div class="loading-row">' +
+      '<div class="skeleton"></div>'.repeat(4) + '</div>';
+
+    try {
+      const res  = await fetch(API + '?action=get');
+      const json = await res.json();
+
+      let rows = json.data || [];
+      const fs = $('fil-siapa').value;
+      const fj = $('fil-jenis').value;
+      if (fs) rows = rows.filter(r => r.siapa === fs);
+      if (fj) rows = rows.filter(r => r.jenis === fj);
+
+      rows.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+      if (!rows.length) {
+        list.innerHTML = '<div class="empty"><span>🗂️</span>Belum ada transaksi.</div>';
+        return;
+      }
+
+      list.innerHTML = rows.map(r => {
+        const tgl  = new Date(r.tanggal);
+        const tglF = isNaN(tgl) ? r.tanggal :
+          tgl.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+        const masuk = r.jenis === 'Pemasukan';
+        return `
+          <div class="tx-card">
+            <div class="tx-left">
+              <div class="tx-keterangan">${r.keterangan}</div>
+              <div class="tx-meta">
+                <span class="badge badge-${r.siapa.toLowerCase()}">${r.siapa}</span>
+                <span class="tx-kat">${r.kategori}</span>
+                <span class="tx-tgl">· ${tglF}</span>
+              </div>
+            </div>
+            <div class="tx-right">
+              <div class="tx-jumlah${masuk ? ' masuk' : ''}">${masuk ? '+' : '-'}${rp(r.jumlah)}</div>
+              <div class="tx-metode">${r.metode}</div>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      list.innerHTML = '<div class="empty"><span>⚠️</span>Gagal memuat data.</div>';
+    }
+  }
+
+  // filter change
+  ['fil-siapa','fil-jenis'].forEach(id => $('id' in {} ? id : id)
+    .addEventListener ? $('fil-siapa') && $('fil-jenis') : null);
+  document.querySelectorAll('#fil-siapa, #fil-jenis')
+    .forEach(el => el.addEventListener('change', loadRiwayat));
+</script>
+</body>
+</html>
