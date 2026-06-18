@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Keuangan Eryu</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.png">
   <meta name="apple-mobile-web-app-title" content="Keuangan">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -455,6 +455,32 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Install banner (muncul otomatis di Android Chrome) -->
+<div id="install-banner" style="
+  display:none; position:fixed; bottom:max(16px, env(safe-area-inset-bottom) + 8px);
+  left:12px; right:12px; z-index:998;
+  background:#fff; border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+  padding:14px 16px; align-items:center; gap:12px;
+  border:1px solid var(--border);
+">
+  <img src="icon.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0">
+  <div style="flex:1;min-width:0">
+    <div style="font-weight:800;font-size:0.88rem">Install Keuangan Eryu</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">Tambah ke layar utama HP</div>
+  </div>
+  <button id="btn-install" style="
+    background:var(--green);color:#fff;border:none;
+    border-radius:8px;padding:8px 14px;
+    font-family:var(--sans);font-size:0.82rem;font-weight:700;
+    cursor:pointer;flex-shrink:0;
+  ">Install</button>
+  <button id="btn-install-close" style="
+    background:none;border:none;font-size:1.2rem;
+    color:var(--muted);cursor:pointer;padding:0 2px;flex-shrink:0;
+  ">✕</button>
+</div>
+
 <script>
   const API = 'https://script.google.com/macros/s/AKfycbxS099i6FKREaL4imS5REDy9Ns3QVO_75HOllI1uL4L9HSS1_TV1da9mMIgerl8FfwejA/exec';
 
@@ -836,6 +862,28 @@
   // filter change
   document.querySelectorAll('#fil-siapa, #fil-jenis')
     .forEach(el => el.addEventListener('change', loadRiwayat));
+
+  // ── PWA install prompt ──
+  let _installPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _installPrompt = e;
+    const banner = $('install-banner');
+    banner.style.display = 'flex';
+  });
+  $('btn-install').addEventListener('click', async () => {
+    if (!_installPrompt) return;
+    _installPrompt.prompt();
+    const { outcome } = await _installPrompt.userChoice;
+    if (outcome === 'accepted') $('install-banner').style.display = 'none';
+    _installPrompt = null;
+  });
+  $('btn-install-close').addEventListener('click', () => {
+    $('install-banner').style.display = 'none';
+  });
+  window.addEventListener('appinstalled', () => {
+    $('install-banner').style.display = 'none';
+  });
 </script>
 </body>
 </html>
