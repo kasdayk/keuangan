@@ -131,7 +131,7 @@
     }
 
     .jumlah-wrap { position: relative; }
-    .jumlah-wrap input { padding-left: 40px; font-family: var(--mono); font-size: 0.95rem; }
+    .jumlah-wrap input { padding-left: 40px; font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 0.95rem; font-weight: 600; }
     .jumlah-prefix {
       position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
       font-size: 0.78rem; font-weight: 700; color: var(--muted);
@@ -194,7 +194,7 @@
     .tx-tgl { font-size: 0.72rem; color: var(--muted); }
 
     .tx-right { text-align: right; flex-shrink: 0; }
-    .tx-jumlah          { font-family: var(--mono); font-weight: 600; font-size: 0.92rem; color: var(--red); }
+    .tx-jumlah          { font-family: var(--sans); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.95rem; color: var(--red); }
     .tx-jumlah.masuk    { color: var(--green); }
     .tx-jumlah.tabungan { color: var(--teal); }
     .tx-metode { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
@@ -258,7 +258,7 @@
     }
     .dash-person-card.suami .dash-person-name { color: #1d4ed8; }
     .dash-person-card.istri  .dash-person-name { color: #9d174d; }
-    .dash-person-amount { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; color: var(--red); }
+    .dash-person-amount { font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 1rem; font-weight: 700; color: var(--red); }
     .dash-person-tx { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
 
     .dash-section {
@@ -273,10 +273,10 @@
     }
     .dash-kat-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
     .dash-kat-name { font-size: 0.85rem; font-weight: 700; }
-    .dash-kat-amount { font-family: var(--mono); font-size: 0.85rem; font-weight: 600; color: var(--red); }
+    .dash-kat-amount { font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 0.9rem; font-weight: 700; color: var(--red); }
     .dash-kat-budget { font-size: 0.72rem; color: var(--muted); }
     .dash-kat-budget.over { color: var(--red); font-weight: 700; }
-    .dash-kat-pct { font-family: var(--mono); font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+    .dash-kat-pct { font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
 
     .dash-bar-bg { background: var(--ivory-2); border-radius: 99px; height: 5px; overflow: hidden; }
     .dash-bar-fill {
@@ -296,7 +296,7 @@
       font-size: 0.68rem; font-weight: 800; color: var(--muted);
       text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px;
     }
-    .dash-metode-amount { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; }
+    .dash-metode-amount { font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 1rem; font-weight: 700; }
 
     .dash-empty { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 0.9rem; }
     .dash-empty span { display: block; font-size: 2rem; margin-bottom: 8px; }
