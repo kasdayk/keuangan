@@ -195,14 +195,16 @@
       font-weight: 700;
       text-transform: uppercase;
     }
-    .badge-suami { background: #dbeafe; color: #1d4ed8; }
-    .badge-istri  { background: #fce7f3; color: #9d174d; }
+    .badge-suami    { background: #dbeafe; color: #1d4ed8; }
+    .badge-istri    { background: #fce7f3; color: #9d174d; }
+    .badge-tabungan { background: #d1fae5; color: #065f46; }
     .tx-kat { font-size: 0.75rem; color: var(--muted); }
     .tx-tgl { font-size: 0.75rem; color: var(--muted); }
 
     .tx-right { text-align: right; flex-shrink: 0; }
-    .tx-jumlah { font-weight: 700; font-size: 0.95rem; color: var(--red); }
-    .tx-jumlah.masuk { color: var(--green); }
+    .tx-jumlah          { font-weight: 700; font-size: 0.95rem; color: var(--red); }
+    .tx-jumlah.masuk    { color: var(--green); }
+    .tx-jumlah.tabungan { color: #0891b2; }
     .tx-metode { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 
     .empty {
@@ -343,6 +345,7 @@
             <option value="">Pilih...</option>
             <option value="Pengeluaran">Pengeluaran</option>
             <option value="Pemasukan">Pemasukan</option>
+            <option value="Tabungan">Tabungan</option>
           </select>
         </div>
       </div>
@@ -416,6 +419,7 @@
         <option value="">Semua Jenis</option>
         <option value="Pengeluaran">Pengeluaran</option>
         <option value="Pemasukan">Pemasukan</option>
+        <option value="Tabungan">Tabungan</option>
       </select>
     </div>
   </div>
@@ -436,10 +440,9 @@
 
   const KATEGORI = {
     Suami: ['Keluarga & Orang Tua','Tagihan Rutin','Pekerjaan',
-            'Anak & Sekolah','Konsumsi & Belanja','Gaya Hidup',
-            'Pemeliharaan','Tabungan & Sosial'],
-    Istri:  ['Keluarga & Orang Tua','Pekerjaan','Anak & Sekolah',
-             'Gaya Hidup','Tabungan & Sosial']
+            'Anak & Sekolah','Konsumsi & Belanja','Gaya Hidup','Pemeliharaan'],
+    Istri: ['Keluarga & Orang Tua','Pekerjaan','Anak & Sekolah','Gaya Hidup'],
+    Tabungan: ['Dana Darurat','Tabungan Reguler','Investasi','Dana Pendidikan','Dana Sosial']
   };
 
   // ── Init ──
@@ -462,16 +465,24 @@
   });
 
   // ── Dropdown kategori ──
-  $('f-siapa').addEventListener('change', () => {
+  function updateKategori() {
+    const jenis = $('f-jenis').value;
     const siapa = $('f-siapa').value;
     const sel   = $('f-kategori');
+    if (jenis === 'Tabungan') {
+      sel.innerHTML = '<option value="">Pilih kategori...</option>' +
+        KATEGORI.Tabungan.map(k => `<option value="${k}">${k}</option>`).join('');
+      return;
+    }
     if (!siapa) {
       sel.innerHTML = '<option value="">— pilih Siapa dulu —</option>';
       return;
     }
     sel.innerHTML = '<option value="">Pilih kategori...</option>' +
-      KATEGORI[siapa].map(k => `<option value="${k}">${k}</option>`).join('');
-  });
+      (KATEGORI[siapa] || []).map(k => `<option value="${k}">${k}</option>`).join('');
+  }
+  $('f-siapa').addEventListener('change', updateKategori);
+  $('f-jenis').addEventListener('change', updateKategori);
 
   // ── Toast ──
   let toastTimer;
@@ -551,19 +562,24 @@
         const tgl  = new Date(r.tanggal);
         const tglF = isNaN(tgl) ? r.tanggal :
           tgl.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
-        const masuk = r.jenis === 'Pemasukan';
+        const masuk   = r.jenis === 'Pemasukan';
+        const tabung  = r.jenis === 'Tabungan';
+        const jumlahCls = masuk ? ' masuk' : tabung ? ' tabungan' : '';
+        const prefix    = masuk ? '+' : tabung ? '🏦' : '-';
+        const badgeCls  = tabung ? 'tabungan' : r.siapa.toLowerCase();
+        const badgeTxt  = tabung ? 'Tabungan' : r.siapa;
         return `
           <div class="tx-card">
             <div class="tx-left">
               <div class="tx-keterangan">${r.keterangan}</div>
               <div class="tx-meta">
-                <span class="badge badge-${r.siapa.toLowerCase()}">${r.siapa}</span>
+                <span class="badge badge-${badgeCls}">${badgeTxt}</span>
                 <span class="tx-kat">${r.kategori}</span>
                 <span class="tx-tgl">· ${tglF}</span>
               </div>
             </div>
             <div class="tx-right">
-              <div class="tx-jumlah${masuk ? ' masuk' : ''}">${masuk ? '+' : '-'}${rp(r.jumlah)}</div>
+              <div class="tx-jumlah${jumlahCls}">${prefix}${rp(r.jumlah)}</div>
               <div class="tx-metode">${r.metode}</div>
             </div>
           </div>`;
@@ -628,8 +644,10 @@
 
     const keluar = rows.filter(r => r.jenis === 'Pengeluaran');
     const masuk  = rows.filter(r => r.jenis === 'Pemasukan');
+    const tabung = rows.filter(r => r.jenis === 'Tabungan');
     const totalKeluar = keluar.reduce((s, r) => s + Number(r.jumlah), 0);
     const totalMasuk  = masuk.reduce((s,  r) => s + Number(r.jumlah), 0);
+    const totalTabung = tabung.reduce((s, r) => s + Number(r.jumlah), 0);
 
     const suamiKeluar = keluar.filter(r => r.siapa === 'Suami').reduce((s, r) => s + Number(r.jumlah), 0);
     const istriKeluar = keluar.filter(r => r.siapa === 'Istri').reduce((s,  r) => s + Number(r.jumlah), 0);
@@ -666,19 +684,28 @@
     const cashTotal     = keluar.filter(r => r.metode === 'Cash').reduce((s, r) => s + Number(r.jumlah), 0);
     const nonTunaiTotal = keluar.filter(r => r.metode !== 'Cash').reduce((s, r) => s + Number(r.jumlah), 0);
 
-    const net = totalMasuk - totalKeluar;
-    const netLabel = net >= 0 ? 'surplus' : 'defisit';
-    const netStr   = (net >= 0 ? '+' : '−') + rp(Math.abs(net));
+    const sisa = totalMasuk - totalKeluar - totalTabung;
+    const sisaLabel = sisa >= 0 ? 'surplus' : 'defisit';
+    const sisaStr   = (sisa >= 0 ? '+' : '−') + rp(Math.abs(sisa));
 
     const hasAnggaran = totalAnggaran > 0;
 
     $('dash-content').innerHTML = `
       <div class="dash-total-card">
-        <div class="dash-total-label">Total Pengeluaran${hasAnggaran ? ' · Anggaran ' + rp(totalAnggaran) : ''}</div>
+        <div class="dash-total-label">Pengeluaran${hasAnggaran ? ' · Anggaran ' + rp(totalAnggaran) : ''}</div>
         <div class="dash-total-amount">${rp(totalKeluar)}</div>
-        ${totalMasuk > 0
-          ? `<div class="dash-net ${netLabel}">${netStr} ${netLabel} · pendapatan ${rp(totalMasuk)}</div>`
-          : ''}
+        ${totalMasuk > 0 ? `
+        <div class="dash-net" style="margin-top:10px;opacity:1;display:flex;justify-content:space-between;font-size:0.8rem">
+          <span>📥 Pendapatan</span><span>${rp(totalMasuk)}</span>
+        </div>
+        ${totalTabung > 0 ? `
+        <div class="dash-net" style="opacity:1;display:flex;justify-content:space-between;font-size:0.8rem">
+          <span>🏦 Tabungan</span><span>${rp(totalTabung)}</span>
+        </div>` : ''}
+        <div style="border-top:1px solid rgba(255,255,255,.3);margin:8px 0"></div>
+        <div class="dash-net ${sisaLabel}" style="opacity:1;display:flex;justify-content:space-between;font-weight:700">
+          <span>Sisa</span><span>${sisaStr}</span>
+        </div>` : ''}
       </div>
 
       <div class="dash-person-row">
@@ -734,6 +761,28 @@
           <div class="dash-person-name">Istri</div>
           <div class="dash-person-amount" style="color:var(--green)">${rp(istriMasuk)}</div>
           <div class="dash-person-tx">${masuk.filter(r=>r.siapa==='Istri').length} transaksi</div>
+        </div>
+      </div>` : ''}
+
+      ${totalTabung > 0 ? `
+      <div class="dash-section">Tabungan & Investasi</div>
+      <div class="dash-kat-list">
+        ${Object.entries(tabung.reduce((m, r) => {
+            m[r.kategori] = (m[r.kategori] || 0) + Number(r.jumlah); return m;
+          }, {}))
+          .sort((a, b) => b[1] - a[1])
+          .map(([kat, jml]) => `
+          <div class="dash-kat-item">
+            <div class="dash-kat-header">
+              <span class="dash-kat-name">${kat}</span>
+              <span class="dash-kat-amount" style="color:#0891b2">${rp(jml)}</span>
+            </div>
+          </div>`).join('')}
+        <div class="dash-kat-item" style="background:#ecfdf5">
+          <div class="dash-kat-header" style="margin-bottom:0">
+            <span class="dash-kat-name" style="color:#065f46">Total Tabungan</span>
+            <span class="dash-kat-amount" style="color:#065f46">${rp(totalTabung)}</span>
+          </div>
         </div>
       </div>` : ''}
 
