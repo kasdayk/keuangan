@@ -193,11 +193,23 @@
     .tx-kat { font-size: 0.72rem; color: var(--muted); }
     .tx-tgl { font-size: 0.72rem; color: var(--muted); }
 
-    .tx-right { text-align: right; flex-shrink: 0; }
+    .tx-right { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
     .tx-jumlah          { font-family: var(--sans); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 0.95rem; color: var(--red); }
     .tx-jumlah.masuk    { color: var(--green); }
     .tx-jumlah.tabungan { color: var(--teal); }
-    .tx-metode { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .tx-metode { font-size: 0.7rem; color: var(--muted); }
+
+    .btn-delete {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 0.8rem; padding: 4px 2px;
+      opacity: 0; transition: opacity .2s, color .15s;
+      line-height: 1;
+    }
+    .tx-card:hover .btn-delete,
+    .tx-card:active .btn-delete { opacity: 1; }
+    .btn-delete:hover { color: var(--red); }
+
+    @media (hover: none) { .btn-delete { opacity: 0.45; } }
 
     .empty { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 0.9rem; }
     .empty span { display: block; font-size: 2rem; margin-bottom: 8px; }
@@ -277,14 +289,19 @@
     .dash-kat-budget { font-size: 0.72rem; color: var(--muted); }
     .dash-kat-budget.over { color: var(--red); font-weight: 700; }
     .dash-kat-pct { font-family: var(--sans); font-variant-numeric: tabular-nums; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+    .dash-kat-excess { font-size: 0.72rem; color: var(--red); font-weight: 700; margin-top: 5px; }
 
-    .dash-bar-bg { background: var(--ivory-2); border-radius: 99px; height: 5px; overflow: hidden; }
+    .dash-bar-bg { background: var(--ivory-2); border-radius: 99px; height: 6px; overflow: hidden; }
     .dash-bar-fill {
       background: linear-gradient(90deg, var(--green), var(--green-2));
       height: 100%; border-radius: 99px; transition: width .7s cubic-bezier(.2,.8,.2,1);
     }
-    .dash-bar-fill.over { background: linear-gradient(90deg, var(--red), #d4714f); }
+    .dash-bar-fill.over {
+      background: linear-gradient(90deg, var(--red), #d4714f);
+      animation: pulse-bar 1.4s ease-in-out infinite;
+    }
     .dash-bar-fill.warn { background: linear-gradient(90deg, var(--ochre), #c49430); }
+    @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:.65} }
 
     .dash-metode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
     .dash-metode-card {
@@ -582,9 +599,32 @@
             <div class="tx-right">
               <div class="tx-jumlah${jumlahCls}">${prefix}${rp(r.jumlah)}</div>
               <div class="tx-metode">${r.metode}</div>
+              <button class="btn-delete" data-id="${r.id}" title="Hapus transaksi">🗑</button>
             </div>
           </div>`;
       }).join('');
+      // delegate hapus
+      list.addEventListener('click', async e => {
+        const btn = e.target.closest('.btn-delete');
+        if (!btn) return;
+        if (!confirm('Hapus transaksi ini?')) return;
+        btn.textContent = '…'; btn.disabled = true;
+        try {
+          const res  = await fetch(API + '?action=delete&id=' + btn.dataset.id);
+          const json = await res.json();
+          if (json.ok) {
+            _dashData = null;
+            btn.closest('.tx-card').remove();
+            toast('Transaksi dihapus.');
+          } else {
+            toast('Gagal hapus: ' + (json.error || 'unknown'), true);
+            btn.textContent = '🗑'; btn.disabled = false;
+          }
+        } catch {
+          toast('Gagal menghubungi server.', true);
+          btn.textContent = '🗑'; btn.disabled = false;
+        }
+      });
     } catch {
       list.innerHTML = '<div class="empty"><span>⚠️</span>Gagal memuat data.</div>';
     }
@@ -715,21 +755,26 @@
         ${katSorted.map(([kat, aktual]) => {
           const budget = angKatMap[kat] || 0;
           const hasBudget = budget > 0;
-          const pct  = hasBudget ? Math.round(aktual / budget * 100) : 0;
-          const barW = hasBudget ? Math.min(pct, 100) : 100;
-          const cls  = hasBudget ? (pct > 100 ? 'over' : pct >= 85 ? 'warn' : '') : '';
+          const pctRaw = hasBudget ? (aktual / budget * 100) : 0;
+          const pct    = Math.round(pctRaw);
+          const barW   = hasBudget ? Math.min(pct, 100) : 100;
+          const isOver = hasBudget && aktual > budget;
+          const isWarn = hasBudget && !isOver && pct >= 85;
+          const cls    = isOver ? 'over' : isWarn ? 'warn' : '';
+          const excess = aktual - budget;
           return `
-          <div class="dash-kat-item">
+          <div class="dash-kat-item${isOver ? ' style="border-color:#f5c6bb"' : ''}">
             <div class="dash-kat-header">
               <span class="dash-kat-name">${kat}</span>
               <span class="dash-kat-amount">${rp(aktual)}</span>
             </div>
             ${hasBudget ? `
             <div class="dash-kat-header" style="margin-bottom:6px">
-              <span class="dash-kat-budget ${cls}">${pct > 100 ? '⚠️ ' : ''}dari ${rp(budget)}</span>
-              <span class="dash-kat-pct" style="${pct>100?'color:var(--red)':pct>=85?'color:var(--ochre)':''}">${pct}%</span>
-            </div>` : ''}
-            <div class="dash-bar-bg">
+              <span class="dash-kat-budget ${isOver ? 'over' : ''}">dari ${rp(budget)}</span>
+              <span class="dash-kat-pct" style="color:${isOver?'var(--red)':isWarn?'var(--ochre)':'var(--muted)'}">${pct}%</span>
+            </div>
+            ${isOver ? `<div class="dash-kat-excess">⚠️ Melebihi anggaran ${rp(excess)}</div>` : ''}` : ''}
+            <div class="dash-bar-bg" style="margin-top:${isOver?'6':'0'}px">
               <div class="dash-bar-fill ${cls}" style="width:${barW}%"></div>
             </div>
           </div>`;
