@@ -343,7 +343,7 @@
 
 <script>
   // ── GANTI INI setelah deploy Apps Script ──
-  const API = 'https://script.google.com/macros/s/AKfycbwfG4go0FYjqDrT-2kHGj4EYZzRNvW5YoGECAgEsINiZAeYB48zXDwDnbC5KLOPLow/exec';
+  const API = 'https://script.google.com/macros/s/AKfycbwuWsyPA7E8RGMq0EhPefV69_3FuMNClEQ6KPsBiyAi2OKdO_4km-9183WLtG9tQWT0GA/exec';
 
   const KATEGORI = {
     Suami: ['Keluarga & Orang Tua','Tagihan Rutin','Pekerjaan',
@@ -440,7 +440,7 @@
       '<div class="skeleton"></div>'.repeat(4) + '</div>';
 
     try {
-      const res  = await fetch(API + '?action=get');
+      const res  = await fetch(API + '?action=get&t=' + Date.now());
       const json = await res.json();
 
       let rows = json.data || [];
