@@ -226,6 +226,72 @@
       height: 68px;
     }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* DASHBOARD */
+    .dash-month-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card); border-radius: 12px; padding: 10px 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 14px;
+    }
+    .dash-month-nav button {
+      background: none; border: none; font-size: 1.5rem;
+      color: var(--green); cursor: pointer; padding: 0 4px; line-height: 1;
+    }
+    .dash-month-label { font-weight: 700; font-size: 0.95rem; }
+
+    .dash-total-card {
+      background: linear-gradient(135deg, var(--green), var(--green-light));
+      color: white; border-radius: 16px; padding: 20px 20px 18px;
+      margin-bottom: 10px; text-align: center;
+    }
+    .dash-total-label { font-size: 0.8rem; opacity: .8; margin-bottom: 4px; }
+    .dash-total-amount { font-size: 1.7rem; font-weight: 800; letter-spacing: -.5px; }
+    .dash-net { margin-top: 8px; font-size: 0.78rem; opacity: .85; }
+    .dash-net.surplus { color: #a7f3d0; }
+    .dash-net.defisit { color: #fca5a5; }
+
+    .dash-person-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .dash-person-card {
+      background: var(--card); border-radius: 12px; padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .dash-person-name {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .5px; margin-bottom: 5px;
+    }
+    .dash-person-card.suami .dash-person-name { color: #1d4ed8; }
+    .dash-person-card.istri  .dash-person-name { color: #9d174d; }
+    .dash-person-amount { font-size: 1rem; font-weight: 700; color: var(--red); }
+    .dash-person-tx { font-size: 0.71rem; color: var(--muted); margin-top: 3px; }
+
+    .dash-section { font-size: 0.7rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .8px; margin: 14px 0 8px; }
+
+    .dash-kat-list { display: flex; flex-direction: column; gap: 8px; }
+    .dash-kat-item {
+      background: var(--card); border-radius: 12px; padding: 12px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .dash-kat-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .dash-kat-name { font-size: 0.85rem; font-weight: 600; }
+    .dash-kat-amount { font-size: 0.85rem; font-weight: 700; color: var(--red); }
+    .dash-bar-bg { background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
+    .dash-bar-fill {
+      background: linear-gradient(90deg, var(--green), var(--green-light));
+      height: 100%; border-radius: 4px; transition: width .6s ease;
+    }
+
+    .dash-metode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+    .dash-metode-card {
+      background: var(--card); border-radius: 12px; padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06); text-align: center;
+    }
+    .dash-metode-name { font-size: 0.72rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+    .dash-metode-amount { font-size: 1rem; font-weight: 700; }
+
+    .dash-empty { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 0.9rem; }
+    .dash-empty span { display: block; font-size: 2rem; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -237,6 +303,7 @@
 
 <nav>
   <div class="tab active" data-page="input">➕ Input</div>
+  <div class="tab"        data-page="dashboard">📊 Ringkasan</div>
   <div class="tab"        data-page="riwayat">📋 Riwayat</div>
 </nav>
 
@@ -313,6 +380,22 @@
   </form>
 </div>
 
+<!-- ===== DASHBOARD ===== -->
+<div class="page" id="page-dashboard">
+  <div class="dash-month-nav">
+    <button id="dash-prev">‹</button>
+    <span class="dash-month-label" id="dash-month-label">—</span>
+    <button id="dash-next">›</button>
+  </div>
+  <div id="dash-content">
+    <div class="loading-row">
+      <div class="skeleton" style="height:110px;border-radius:16px"></div>
+      <div class="skeleton" style="height:80px"></div>
+      <div class="skeleton" style="height:220px"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== RIWAYAT ===== -->
 <div class="page" id="page-riwayat">
   <div class="filter-row">
@@ -368,7 +451,8 @@
       document.querySelectorAll('.tab, .page').forEach(el => el.classList.remove('active'));
       tab.classList.add('active');
       $('page-' + tab.dataset.page).classList.add('active');
-      if (tab.dataset.page === 'riwayat') loadRiwayat();
+      if (tab.dataset.page === 'riwayat')   loadRiwayat();
+      if (tab.dataset.page === 'dashboard') loadDashboard();
     });
   });
 
@@ -420,6 +504,7 @@
       const json = await res.json();
       if (json.ok) {
         toast('✓ Transaksi tersimpan!');
+        _dashData = null;
         $('form-tx').reset();
         $('f-tanggal').value = today();
         $('f-kategori').innerHTML = '<option value="">— pilih Siapa dulu —</option>';
@@ -481,6 +566,124 @@
     } catch {
       list.innerHTML = '<div class="empty"><span>⚠️</span>Gagal memuat data.</div>';
     }
+  }
+
+  // ── Dashboard ──
+  const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni',
+                    'Juli','Agustus','September','Oktober','November','Desember'];
+  let _dashData = null;
+  let dashYear  = new Date().getFullYear();
+  let dashMonth = new Date().getMonth();
+
+  $('dash-prev').addEventListener('click', () => {
+    dashMonth--; if (dashMonth < 0) { dashMonth = 11; dashYear--; }
+    renderDash();
+  });
+  $('dash-next').addEventListener('click', () => {
+    dashMonth++; if (dashMonth > 11) { dashMonth = 0; dashYear++; }
+    renderDash();
+  });
+
+  async function loadDashboard() {
+    if (!_dashData) {
+      $('dash-content').innerHTML = '<div class="loading-row">' +
+        '<div class="skeleton" style="height:110px;border-radius:16px"></div>' +
+        '<div class="skeleton" style="height:80px"></div>' +
+        '<div class="skeleton" style="height:220px"></div></div>';
+      try {
+        const res  = await fetch(API + '?action=get&t=' + Date.now());
+        const json = await res.json();
+        _dashData  = json.data || [];
+      } catch {
+        $('dash-content').innerHTML = '<div class="dash-empty"><span>⚠️</span>Gagal memuat data.</div>';
+        return;
+      }
+    }
+    renderDash();
+  }
+
+  function renderDash() {
+    $('dash-month-label').textContent = BULAN_ID[dashMonth] + ' ' + dashYear;
+
+    const rows = (_dashData || []).filter(r => {
+      const d = new Date(r.tanggal);
+      return d.getFullYear() === dashYear && d.getMonth() === dashMonth;
+    });
+
+    if (!rows.length) {
+      $('dash-content').innerHTML = '<div class="dash-empty"><span>📭</span>Belum ada transaksi bulan ini.</div>';
+      return;
+    }
+
+    const keluar = rows.filter(r => r.jenis === 'Pengeluaran');
+    const masuk  = rows.filter(r => r.jenis === 'Pemasukan');
+    const totalKeluar = keluar.reduce((s, r) => s + Number(r.jumlah), 0);
+    const totalMasuk  = masuk.reduce((s,  r) => s + Number(r.jumlah), 0);
+
+    const suamiKeluar = keluar.filter(r => r.siapa === 'Suami').reduce((s, r) => s + Number(r.jumlah), 0);
+    const istriKeluar = keluar.filter(r => r.siapa === 'Istri').reduce((s,  r) => s + Number(r.jumlah), 0);
+    const suamiTx = keluar.filter(r => r.siapa === 'Suami').length;
+    const istriTx = keluar.filter(r => r.siapa === 'Istri').length;
+
+    const katMap = {};
+    keluar.forEach(r => { katMap[r.kategori] = (katMap[r.kategori] || 0) + Number(r.jumlah); });
+    const katSorted = Object.entries(katMap).sort((a, b) => b[1] - a[1]);
+    const maxKat = katSorted[0]?.[1] || 1;
+
+    const cashTotal    = keluar.filter(r => r.metode === 'Cash').reduce((s, r) => s + Number(r.jumlah), 0);
+    const nonTunaiTotal = keluar.filter(r => r.metode !== 'Cash').reduce((s, r) => s + Number(r.jumlah), 0);
+
+    const net = totalMasuk - totalKeluar;
+    const netLabel = net >= 0 ? 'surplus' : 'defisit';
+    const netStr   = (net >= 0 ? '+' : '−') + rp(Math.abs(net));
+
+    $('dash-content').innerHTML = `
+      <div class="dash-total-card">
+        <div class="dash-total-label">Total Pengeluaran</div>
+        <div class="dash-total-amount">${rp(totalKeluar)}</div>
+        ${totalMasuk > 0
+          ? `<div class="dash-net ${netLabel}">${netStr} ${netLabel} · masuk ${rp(totalMasuk)}</div>`
+          : ''}
+      </div>
+
+      <div class="dash-person-row">
+        <div class="dash-person-card suami">
+          <div class="dash-person-name">Suami</div>
+          <div class="dash-person-amount">${rp(suamiKeluar)}</div>
+          <div class="dash-person-tx">${suamiTx} transaksi</div>
+        </div>
+        <div class="dash-person-card istri">
+          <div class="dash-person-name">Istri</div>
+          <div class="dash-person-amount">${rp(istriKeluar)}</div>
+          <div class="dash-person-tx">${istriTx} transaksi</div>
+        </div>
+      </div>
+
+      <div class="dash-section">Per Kategori</div>
+      <div class="dash-kat-list">
+        ${katSorted.map(([kat, jml]) => `
+          <div class="dash-kat-item">
+            <div class="dash-kat-header">
+              <span class="dash-kat-name">${kat}</span>
+              <span class="dash-kat-amount">${rp(jml)}</span>
+            </div>
+            <div class="dash-bar-bg">
+              <div class="dash-bar-fill" style="width:${Math.round(jml / maxKat * 100)}%"></div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <div class="dash-section">Metode Bayar</div>
+      <div class="dash-metode-row">
+        <div class="dash-metode-card">
+          <div class="dash-metode-name">💵 Cash</div>
+          <div class="dash-metode-amount">${rp(cashTotal)}</div>
+        </div>
+        <div class="dash-metode-card">
+          <div class="dash-metode-name">💳 Non-Tunai</div>
+          <div class="dash-metode-amount">${rp(nonTunaiTotal)}</div>
+        </div>
+      </div>`;
   }
 
   // filter change
