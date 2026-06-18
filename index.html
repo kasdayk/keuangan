@@ -280,6 +280,11 @@
       background: linear-gradient(90deg, var(--green), var(--green-light));
       height: 100%; border-radius: 4px; transition: width .6s ease;
     }
+    .dash-bar-fill.over  { background: linear-gradient(90deg, #dc2626, #ef4444); }
+    .dash-bar-fill.warn  { background: linear-gradient(90deg, #d97706, #f59e0b); }
+    .dash-kat-budget { font-size: 0.75rem; color: var(--muted); }
+    .dash-kat-budget.over { color: var(--red); font-weight: 600; }
+    .dash-kat-pct { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
 
     .dash-metode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
     .dash-metode-card {
@@ -427,7 +432,7 @@
 
 <script>
   // ── GANTI INI setelah deploy Apps Script ──
-  const API = 'https://script.google.com/macros/s/AKfycbwuWsyPA7E8RGMq0EhPefV69_3FuMNClEQ6KPsBiyAi2OKdO_4km-9183WLtG9tQWT0GA/exec';
+  const API = 'https://script.google.com/macros/s/AKfycbzgmZ9CaVzApUoQSE5d68ICzwGeinu3pMrmZOnGROhNdWFvy-k3-ETBbxlFZduHt9Cm6w/exec';
 
   const KATEGORI = {
     Suami: ['Keluarga & Orang Tua','Tagihan Rutin','Pekerjaan',
@@ -504,7 +509,7 @@
       const json = await res.json();
       if (json.ok) {
         toast('✓ Transaksi tersimpan!');
-        _dashData = null;
+        _dashData = null; _anggaranData = null;
         $('form-tx').reset();
         $('f-tanggal').value = today();
         $('f-kategori').innerHTML = '<option value="">— pilih Siapa dulu —</option>';
@@ -571,7 +576,8 @@
   // ── Dashboard ──
   const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni',
                     'Juli','Agustus','September','Oktober','November','Desember'];
-  let _dashData = null;
+  let _dashData     = null;
+  let _anggaranData = null;
   let dashYear  = new Date().getFullYear();
   let dashMonth = new Date().getMonth();
 
@@ -585,15 +591,20 @@
   });
 
   async function loadDashboard() {
-    if (!_dashData) {
+    if (!_dashData || !_anggaranData) {
       $('dash-content').innerHTML = '<div class="loading-row">' +
         '<div class="skeleton" style="height:110px;border-radius:16px"></div>' +
         '<div class="skeleton" style="height:80px"></div>' +
         '<div class="skeleton" style="height:220px"></div></div>';
       try {
-        const res  = await fetch(API + '?action=get&t=' + Date.now());
-        const json = await res.json();
-        _dashData  = json.data || [];
+        const t = Date.now();
+        const [resTx, resAng] = await Promise.all([
+          fetch(API + '?action=get&t=' + t),
+          fetch(API + '?action=anggaran&t=' + t)
+        ]);
+        const [jsonTx, jsonAng] = await Promise.all([resTx.json(), resAng.json()]);
+        _dashData     = jsonTx.data  || [];
+        _anggaranData = jsonAng.data || [];
       } catch {
         $('dash-content').innerHTML = '<div class="dash-empty"><span>⚠️</span>Gagal memuat data.</div>';
         return;
@@ -622,27 +633,51 @@
 
     const suamiKeluar = keluar.filter(r => r.siapa === 'Suami').reduce((s, r) => s + Number(r.jumlah), 0);
     const istriKeluar = keluar.filter(r => r.siapa === 'Istri').reduce((s,  r) => s + Number(r.jumlah), 0);
+    const suamiMasuk  = masuk.filter(r => r.siapa === 'Suami').reduce((s, r) => s + Number(r.jumlah), 0);
+    const istriMasuk  = masuk.filter(r => r.siapa === 'Istri').reduce((s,  r) => s + Number(r.jumlah), 0);
     const suamiTx = keluar.filter(r => r.siapa === 'Suami').length;
     const istriTx = keluar.filter(r => r.siapa === 'Istri').length;
 
+    // budget: buat map {siapa|kategori: jumlah}
+    const ang = _anggaranData || [];
+    const angKey = (siapa, kat) => (siapa + '|' + kat).toLowerCase();
+    const angMap = {};
+    ang.forEach(a => {
+      const siapa = a.siapa || a['who'] || '';
+      const kat   = a.kategori || a['category'] || '';
+      const jml   = Number(a.jumlah || a.anggaran || 0);
+      const k = angKey(siapa, kat);
+      angMap[k] = (angMap[k] || 0) + jml;
+    });
+    // total anggaran per kategori (gabung suami+istri)
+    const angKatMap = {};
+    ang.forEach(a => {
+      const kat = a.kategori || a['category'] || '';
+      const jml = Number(a.jumlah || a.anggaran || 0);
+      angKatMap[kat] = (angKatMap[kat] || 0) + jml;
+    });
+    const totalAnggaran = Object.values(angKatMap).reduce((s, v) => s + v, 0);
+
+    // per kategori aktual
     const katMap = {};
     keluar.forEach(r => { katMap[r.kategori] = (katMap[r.kategori] || 0) + Number(r.jumlah); });
     const katSorted = Object.entries(katMap).sort((a, b) => b[1] - a[1]);
-    const maxKat = katSorted[0]?.[1] || 1;
 
-    const cashTotal    = keluar.filter(r => r.metode === 'Cash').reduce((s, r) => s + Number(r.jumlah), 0);
+    const cashTotal     = keluar.filter(r => r.metode === 'Cash').reduce((s, r) => s + Number(r.jumlah), 0);
     const nonTunaiTotal = keluar.filter(r => r.metode !== 'Cash').reduce((s, r) => s + Number(r.jumlah), 0);
 
     const net = totalMasuk - totalKeluar;
     const netLabel = net >= 0 ? 'surplus' : 'defisit';
     const netStr   = (net >= 0 ? '+' : '−') + rp(Math.abs(net));
 
+    const hasAnggaran = totalAnggaran > 0;
+
     $('dash-content').innerHTML = `
       <div class="dash-total-card">
-        <div class="dash-total-label">Total Pengeluaran</div>
+        <div class="dash-total-label">Total Pengeluaran${hasAnggaran ? ' · Anggaran ' + rp(totalAnggaran) : ''}</div>
         <div class="dash-total-amount">${rp(totalKeluar)}</div>
         ${totalMasuk > 0
-          ? `<div class="dash-net ${netLabel}">${netStr} ${netLabel} · masuk ${rp(totalMasuk)}</div>`
+          ? `<div class="dash-net ${netLabel}">${netStr} ${netLabel} · pendapatan ${rp(totalMasuk)}</div>`
           : ''}
       </div>
 
@@ -659,19 +694,48 @@
         </div>
       </div>
 
-      <div class="dash-section">Per Kategori</div>
+      <div class="dash-section">Pengeluaran per Kategori${hasAnggaran ? ' vs Anggaran' : ''}</div>
       <div class="dash-kat-list">
-        ${katSorted.map(([kat, jml]) => `
+        ${katSorted.map(([kat, aktual]) => {
+          const budget = angKatMap[kat] || 0;
+          const hasBudget = budget > 0;
+          const pct  = hasBudget ? Math.round(aktual / budget * 100) : 0;
+          const barW = hasBudget ? Math.min(pct, 100) : 100;
+          const cls  = hasBudget ? (pct > 100 ? 'over' : pct >= 85 ? 'warn' : '') : '';
+          return `
           <div class="dash-kat-item">
             <div class="dash-kat-header">
               <span class="dash-kat-name">${kat}</span>
-              <span class="dash-kat-amount">${rp(jml)}</span>
+              <span class="dash-kat-amount">${rp(aktual)}</span>
             </div>
+            ${hasBudget ? `
+            <div class="dash-kat-header" style="margin-bottom:6px">
+              <span class="dash-kat-budget ${cls}">
+                ${pct > 100 ? '⚠️ ' : ''}dari ${rp(budget)}
+              </span>
+              <span class="dash-kat-pct" style="${pct>100?'color:var(--red)':pct>=85?'color:#d97706':''}">${pct}%</span>
+            </div>` : ''}
             <div class="dash-bar-bg">
-              <div class="dash-bar-fill" style="width:${Math.round(jml / maxKat * 100)}%"></div>
+              <div class="dash-bar-fill ${cls}" style="width:${barW}%"></div>
             </div>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
       </div>
+
+      ${totalMasuk > 0 ? `
+      <div class="dash-section">Pendapatan</div>
+      <div class="dash-person-row">
+        <div class="dash-person-card suami">
+          <div class="dash-person-name">Suami</div>
+          <div class="dash-person-amount" style="color:var(--green)">${rp(suamiMasuk)}</div>
+          <div class="dash-person-tx">${masuk.filter(r=>r.siapa==='Suami').length} transaksi</div>
+        </div>
+        <div class="dash-person-card istri">
+          <div class="dash-person-name">Istri</div>
+          <div class="dash-person-amount" style="color:var(--green)">${rp(istriMasuk)}</div>
+          <div class="dash-person-tx">${masuk.filter(r=>r.siapa==='Istri').length} transaksi</div>
+        </div>
+      </div>` : ''}
 
       <div class="dash-section">Metode Bayar</div>
       <div class="dash-metode-row">
