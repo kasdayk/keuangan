@@ -3,299 +3,300 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1a5f4a">
+  <meta name="theme-color" content="#2d4a20">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Keuangan Eryu</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Albert+Sans:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --green: #1a5f4a;
-      --green-light: #2d8a6b;
-      --red: #c0392b;
-      --bg: #f0f4f2;
-      --card: #ffffff;
-      --text: #1a1a1a;
-      --muted: #7a8f85;
-      --border: #dde8e3;
+      --ivory:     #f4f1e8;
+      --ivory-2:   #ede9dc;
+      --card:      #fdfcf7;
+      --ink:       #25211a;
+      --ink-2:     #514c41;
+      --muted:     #8a8070;
+      --border:    #ddd7c4;
+      --green:     #3e5e2e;
+      --green-2:   #567d40;
+      --green-soft:#e6eedf;
+      --red:       #b84a2e;
+      --red-soft:  #f5ddd7;
+      --teal:      #0e6b7a;
+      --ochre:     #9a7218;
+      --sans:  'Albert Sans', system-ui, sans-serif;
+      --serif: 'Source Serif 4', Georgia, serif;
+      --mono:  'Spline Sans Mono', 'Courier New', monospace;
     }
 
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: var(--sans);
+      background: var(--ivory);
+      color: var(--ink);
       min-height: 100vh;
       max-width: 480px;
       margin: 0 auto;
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* HEADER */
+    /* ── HEADER ── */
     header {
-      background: linear-gradient(135deg, var(--green), var(--green-light));
+      background: linear-gradient(160deg, #2d4a20 0%, #3e5e2e 55%, #4d7439 100%);
       color: white;
-      padding: 20px 20px 16px;
+      padding: 22px 20px 18px;
+      position: relative;
+      overflow: hidden;
     }
-    header h1 { font-size: 1.25rem; font-weight: 700; }
-    header p  { font-size: 0.8rem; opacity: 0.75; margin-top: 3px; }
+    header::after {
+      content: '';
+      position: absolute;
+      right: -30px; top: -40px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.05);
+    }
+    .hdr-eyebrow {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: .25em;
+      text-transform: uppercase; opacity: .65; margin-bottom: 4px;
+    }
+    header h1 {
+      font-family: var(--serif);
+      font-size: 1.35rem; font-weight: 600;
+      letter-spacing: -.01em; line-height: 1.2;
+    }
+    header h1 em { font-style: italic; opacity: .8; }
+    .hdr-date {
+      font-size: 0.75rem; opacity: .6; margin-top: 4px; font-weight: 500;
+    }
 
-    /* NAV */
+    /* ── NAV ── */
     nav {
       display: flex;
       background: var(--card);
       border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 1px 8px rgba(37,33,26,.07);
     }
     .tab {
-      flex: 1;
-      padding: 13px 8px;
-      text-align: center;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--muted);
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
+      flex: 1; padding: 12px 6px;
+      text-align: center; font-size: 0.78rem; font-weight: 700;
+      color: var(--muted); cursor: pointer;
+      border-bottom: 2.5px solid transparent;
       transition: color .2s, border-color .2s;
-      user-select: none;
+      user-select: none; letter-spacing: .01em;
     }
     .tab.active { color: var(--green); border-bottom-color: var(--green); }
 
-    /* PAGES */
+    /* ── PAGES ── */
     .page { display: none; padding: 16px; }
-    .page.active { display: block; }
+    .page.active { display: block; animation: fadeUp .4s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-    /* FORM */
-    .form-section { font-size: 0.7rem; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .8px; margin: 18px 0 10px; }
+    /* ── FORM ── */
+    .form-section {
+      font-size: 0.65rem; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .18em; margin: 20px 0 10px;
+    }
     .form-section:first-child { margin-top: 4px; }
 
     .row { display: grid; gap: 10px; }
     .row.col2 { grid-template-columns: 1fr 1fr; }
 
     .field { display: flex; flex-direction: column; gap: 5px; }
-    label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+    label { font-size: 0.72rem; font-weight: 700; color: var(--ink-2); letter-spacing: .01em; }
 
     input, select {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      color: var(--text);
-      background: var(--card);
-      appearance: none;
-      -webkit-appearance: none;
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.9rem; font-family: var(--sans);
+      color: var(--ink); background: var(--card);
+      appearance: none; -webkit-appearance: none;
       transition: border-color .2s, box-shadow .2s;
     }
     input:focus, select:focus {
       outline: none;
-      border-color: var(--green-light);
-      box-shadow: 0 0 0 3px rgba(45,138,107,.12);
+      border-color: var(--green-2);
+      box-shadow: 0 0 0 3px rgba(62,94,46,.12);
     }
     .sel-wrap { position: relative; }
     .sel-wrap::after {
-      content: '▾';
-      position: absolute;
-      right: 13px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 0.9rem;
-      pointer-events: none;
+      content: '▾'; position: absolute;
+      right: 13px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 0.85rem; pointer-events: none;
     }
 
-    /* JUMLAH */
     .jumlah-wrap { position: relative; }
-    .jumlah-wrap input { padding-left: 40px; }
+    .jumlah-wrap input { padding-left: 40px; font-family: var(--mono); font-size: 0.95rem; }
     .jumlah-prefix {
-      position: absolute;
-      left: 13px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--muted);
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      font-size: 0.78rem; font-weight: 700; color: var(--muted);
     }
 
-    /* SUBMIT */
     .btn-submit {
-      width: 100%;
-      margin-top: 20px;
-      padding: 15px;
-      background: linear-gradient(135deg, var(--green), var(--green-light));
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: .3px;
-      cursor: pointer;
+      width: 100%; margin-top: 22px; padding: 15px;
+      background: linear-gradient(135deg, var(--green), var(--green-2));
+      color: white; border: none; border-radius: 12px;
+      font-family: var(--sans); font-size: 0.95rem; font-weight: 700;
+      letter-spacing: .02em; cursor: pointer;
       transition: opacity .2s, transform .1s;
+      box-shadow: 0 4px 14px rgba(62,94,46,.3);
     }
     .btn-submit:active { transform: scale(.98); opacity: .9; }
-    .btn-submit:disabled { background: #b0c4bb; cursor: not-allowed; transform: none; }
+    .btn-submit:disabled { background: #b8c4b0; box-shadow: none; cursor: not-allowed; transform: none; }
 
-    /* TOAST */
+    /* ── TOAST ── */
     .toast {
       position: fixed;
       bottom: max(24px, env(safe-area-inset-bottom) + 16px);
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--green);
-      color: white;
-      padding: 12px 22px;
-      border-radius: 24px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--green); color: white;
+      padding: 12px 24px; border-radius: 99px;
+      font-family: var(--sans); font-size: 0.85rem; font-weight: 700;
+      box-shadow: 0 4px 20px rgba(0,0,0,.2);
       transition: transform .3s cubic-bezier(.175,.885,.32,1.275);
-      z-index: 999;
-      white-space: nowrap;
+      z-index: 999; white-space: nowrap;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .toast.err   { background: var(--red); }
+    .toast.err  { background: var(--red); }
 
-    /* RIWAYAT */
-    .filter-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
+    /* ── RIWAYAT FILTER ── */
+    .filter-row { display: flex; gap: 8px; margin-bottom: 14px; }
     .filter-row .sel-wrap { flex: 1; }
-    .filter-row select { padding: 10px 12px; font-size: 0.85rem; }
+    .filter-row select { padding: 9px 12px; font-size: 0.82rem; }
 
+    /* ── TX CARD ── */
     .tx-list { display: flex; flex-direction: column; gap: 8px; }
-
     .tx-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 13px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06);
-      gap: 10px;
+      background: var(--card); border-radius: 14px;
+      padding: 13px 14px; display: flex;
+      justify-content: space-between; align-items: center;
+      box-shadow: 0 1px 3px rgba(37,33,26,.06), 0 4px 12px rgba(37,33,26,.04);
+      border: 1px solid var(--border); gap: 10px;
     }
-    .tx-keterangan { font-weight: 600; font-size: 0.92rem; }
-    .tx-meta {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 4px;
-    }
+    .tx-keterangan { font-weight: 700; font-size: 0.9rem; }
+    .tx-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+
     .badge {
-      padding: 2px 7px;
-      border-radius: 20px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
+      padding: 2px 8px; border-radius: 99px;
+      font-size: 0.65rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .05em;
     }
     .badge-suami    { background: #dbeafe; color: #1d4ed8; }
     .badge-istri    { background: #fce7f3; color: #9d174d; }
-    .badge-tabungan { background: #d1fae5; color: #065f46; }
-    .tx-kat { font-size: 0.75rem; color: var(--muted); }
-    .tx-tgl { font-size: 0.75rem; color: var(--muted); }
+    .badge-tabungan { background: var(--green-soft); color: var(--green); }
+
+    .tx-kat { font-size: 0.72rem; color: var(--muted); }
+    .tx-tgl { font-size: 0.72rem; color: var(--muted); }
 
     .tx-right { text-align: right; flex-shrink: 0; }
-    .tx-jumlah          { font-weight: 700; font-size: 0.95rem; color: var(--red); }
+    .tx-jumlah          { font-family: var(--mono); font-weight: 600; font-size: 0.92rem; color: var(--red); }
     .tx-jumlah.masuk    { color: var(--green); }
-    .tx-jumlah.tabungan { color: #0891b2; }
-    .tx-metode { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    .tx-jumlah.tabungan { color: var(--teal); }
+    .tx-metode { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
 
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 48px 20px;
-      font-size: 0.9rem;
-    }
+    .empty { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 0.9rem; }
     .empty span { display: block; font-size: 2rem; margin-bottom: 8px; }
 
-    .loading-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .loading-row { display: flex; flex-direction: column; gap: 8px; }
     .skeleton {
-      background: linear-gradient(90deg, #e8f0ec 25%, #d4e5da 50%, #e8f0ec 75%);
+      background: linear-gradient(90deg, var(--ivory-2) 25%, #e6e1d2 50%, var(--ivory-2) 75%);
       background-size: 200% 100%;
-      animation: shimmer 1.2s infinite;
-      border-radius: 12px;
-      height: 68px;
+      animation: shimmer 1.3s infinite;
+      border-radius: 12px; height: 68px;
     }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-    /* DASHBOARD */
+    /* ── DASHBOARD ── */
     .dash-month-nav {
       display: flex; align-items: center; justify-content: space-between;
       background: var(--card); border-radius: 12px; padding: 10px 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(37,33,26,.06); border: 1px solid var(--border);
+      margin-bottom: 14px;
     }
     .dash-month-nav button {
-      background: none; border: none; font-size: 1.5rem;
+      background: none; border: none; font-size: 1.4rem;
       color: var(--green); cursor: pointer; padding: 0 4px; line-height: 1;
     }
-    .dash-month-label { font-weight: 700; font-size: 0.95rem; }
+    .dash-month-label { font-family: var(--serif); font-weight: 600; font-size: 1rem; }
 
     .dash-total-card {
-      background: linear-gradient(135deg, var(--green), var(--green-light));
-      color: white; border-radius: 16px; padding: 20px 20px 18px;
-      margin-bottom: 10px; text-align: center;
+      background: linear-gradient(155deg, #2d4a20 0%, #3e5e2e 60%, #4d7439 100%);
+      color: white; border-radius: 18px; padding: 22px 20px 18px;
+      margin-bottom: 10px; position: relative; overflow: hidden;
     }
-    .dash-total-label { font-size: 0.8rem; opacity: .8; margin-bottom: 4px; }
-    .dash-total-amount { font-size: 1.7rem; font-weight: 800; letter-spacing: -.5px; }
-    .dash-net { margin-top: 8px; font-size: 0.78rem; opacity: .85; }
+    .dash-total-card::after {
+      content: ''; position: absolute;
+      right: -20px; bottom: -30px;
+      width: 140px; height: 140px; border-radius: 50%;
+      background: rgba(255,255,255,.05);
+    }
+    .dash-total-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: .18em;
+      text-transform: uppercase; opacity: .7; margin-bottom: 6px;
+    }
+    .dash-total-amount {
+      font-family: var(--serif); font-size: 2rem; font-weight: 700;
+      letter-spacing: -.02em; line-height: 1;
+    }
+    .dash-net { margin-top: 10px; font-size: 0.8rem; }
     .dash-net.surplus { color: #a7f3d0; }
     .dash-net.defisit { color: #fca5a5; }
 
     .dash-person-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .dash-person-card {
-      background: var(--card); border-radius: 12px; padding: 14px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      background: var(--card); border-radius: 14px; padding: 14px;
+      box-shadow: 0 1px 3px rgba(37,33,26,.06); border: 1px solid var(--border);
     }
     .dash-person-name {
-      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .5px; margin-bottom: 5px;
+      font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .12em; margin-bottom: 6px;
     }
     .dash-person-card.suami .dash-person-name { color: #1d4ed8; }
     .dash-person-card.istri  .dash-person-name { color: #9d174d; }
-    .dash-person-amount { font-size: 1rem; font-weight: 700; color: var(--red); }
-    .dash-person-tx { font-size: 0.71rem; color: var(--muted); margin-top: 3px; }
+    .dash-person-amount { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; color: var(--red); }
+    .dash-person-tx { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
 
-    .dash-section { font-size: 0.7rem; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .8px; margin: 14px 0 8px; }
+    .dash-section {
+      font-size: 0.65rem; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .18em; margin: 16px 0 9px;
+    }
 
     .dash-kat-list { display: flex; flex-direction: column; gap: 8px; }
     .dash-kat-item {
-      background: var(--card); border-radius: 12px; padding: 12px 14px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      background: var(--card); border-radius: 14px; padding: 13px 14px;
+      box-shadow: 0 1px 3px rgba(37,33,26,.06); border: 1px solid var(--border);
     }
     .dash-kat-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .dash-kat-name { font-size: 0.85rem; font-weight: 600; }
-    .dash-kat-amount { font-size: 0.85rem; font-weight: 700; color: var(--red); }
-    .dash-bar-bg { background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
+    .dash-kat-name { font-size: 0.85rem; font-weight: 700; }
+    .dash-kat-amount { font-family: var(--mono); font-size: 0.85rem; font-weight: 600; color: var(--red); }
+    .dash-kat-budget { font-size: 0.72rem; color: var(--muted); }
+    .dash-kat-budget.over { color: var(--red); font-weight: 700; }
+    .dash-kat-pct { font-family: var(--mono); font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+
+    .dash-bar-bg { background: var(--ivory-2); border-radius: 99px; height: 5px; overflow: hidden; }
     .dash-bar-fill {
-      background: linear-gradient(90deg, var(--green), var(--green-light));
-      height: 100%; border-radius: 4px; transition: width .6s ease;
+      background: linear-gradient(90deg, var(--green), var(--green-2));
+      height: 100%; border-radius: 99px; transition: width .7s cubic-bezier(.2,.8,.2,1);
     }
-    .dash-bar-fill.over  { background: linear-gradient(90deg, #dc2626, #ef4444); }
-    .dash-bar-fill.warn  { background: linear-gradient(90deg, #d97706, #f59e0b); }
-    .dash-kat-budget { font-size: 0.75rem; color: var(--muted); }
-    .dash-kat-budget.over { color: var(--red); font-weight: 600; }
-    .dash-kat-pct { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+    .dash-bar-fill.over { background: linear-gradient(90deg, var(--red), #d4714f); }
+    .dash-bar-fill.warn { background: linear-gradient(90deg, var(--ochre), #c49430); }
 
     .dash-metode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
     .dash-metode-card {
-      background: var(--card); border-radius: 12px; padding: 14px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06); text-align: center;
+      background: var(--card); border-radius: 14px; padding: 14px;
+      box-shadow: 0 1px 3px rgba(37,33,26,.06); border: 1px solid var(--border);
+      text-align: center;
     }
-    .dash-metode-name { font-size: 0.72rem; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
-    .dash-metode-amount { font-size: 1rem; font-weight: 700; }
+    .dash-metode-name {
+      font-size: 0.68rem; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px;
+    }
+    .dash-metode-amount { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; }
 
     .dash-empty { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 0.9rem; }
     .dash-empty span { display: block; font-size: 2rem; margin-bottom: 8px; }
@@ -304,14 +305,15 @@
 <body>
 
 <header>
-  <h1>Keuangan Eryu</h1>
-  <p id="hdr-date"></p>
+  <div class="hdr-eyebrow">Catatan Keuangan</div>
+  <h1>Keuangan <em>Eryu</em></h1>
+  <div class="hdr-date" id="hdr-date"></div>
 </header>
 
 <nav>
-  <div class="tab active" data-page="input">➕ Input</div>
-  <div class="tab"        data-page="dashboard">📊 Ringkasan</div>
-  <div class="tab"        data-page="riwayat">📋 Riwayat</div>
+  <div class="tab active" data-page="input">＋ Input</div>
+  <div class="tab"        data-page="dashboard">◎ Ringkasan</div>
+  <div class="tab"        data-page="riwayat">≡ Riwayat</div>
 </nav>
 
 <!-- ===== INPUT ===== -->
@@ -397,7 +399,7 @@
   </div>
   <div id="dash-content">
     <div class="loading-row">
-      <div class="skeleton" style="height:110px;border-radius:16px"></div>
+      <div class="skeleton" style="height:120px;border-radius:18px"></div>
       <div class="skeleton" style="height:80px"></div>
       <div class="skeleton" style="height:220px"></div>
     </div>
@@ -435,7 +437,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── GANTI INI setelah deploy Apps Script ──
   const API = 'https://script.google.com/macros/s/AKfycbxS099i6FKREaL4imS5REDy9Ns3QVO_75HOllI1uL4L9HSS1_TV1da9mMIgerl8FfwejA/exec';
 
   const KATEGORI = {
@@ -495,7 +496,7 @@
   }
 
   // ── Format rupiah ──
-  const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+  const rp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
 
   // ── Submit transaksi ──
   $('form-tx').addEventListener('submit', async e => {
@@ -565,7 +566,7 @@
         const masuk   = r.jenis === 'Pemasukan';
         const tabung  = r.jenis === 'Tabungan';
         const jumlahCls = masuk ? ' masuk' : tabung ? ' tabungan' : '';
-        const prefix    = masuk ? '+' : tabung ? '🏦' : '-';
+        const prefix    = masuk ? '+' : tabung ? '🏦 ' : '−';
         const badgeCls  = tabung ? 'tabungan' : r.siapa.toLowerCase();
         const badgeTxt  = tabung ? 'Tabungan' : r.siapa;
         return `
@@ -609,7 +610,7 @@
   async function loadDashboard() {
     if (!_dashData || !_anggaranData) {
       $('dash-content').innerHTML = '<div class="loading-row">' +
-        '<div class="skeleton" style="height:110px;border-radius:16px"></div>' +
+        '<div class="skeleton" style="height:120px;border-radius:18px"></div>' +
         '<div class="skeleton" style="height:80px"></div>' +
         '<div class="skeleton" style="height:220px"></div></div>';
       try {
@@ -656,18 +657,7 @@
     const suamiTx = keluar.filter(r => r.siapa === 'Suami').length;
     const istriTx = keluar.filter(r => r.siapa === 'Istri').length;
 
-    // budget: buat map {siapa|kategori: jumlah}
     const ang = _anggaranData || [];
-    const angKey = (siapa, kat) => (siapa + '|' + kat).toLowerCase();
-    const angMap = {};
-    ang.forEach(a => {
-      const siapa = a.siapa || a['who'] || '';
-      const kat   = a.kategori || a['category'] || '';
-      const jml   = Number(a.jumlah || a.anggaran || 0);
-      const k = angKey(siapa, kat);
-      angMap[k] = (angMap[k] || 0) + jml;
-    });
-    // total anggaran per kategori (gabung suami+istri)
     const angKatMap = {};
     ang.forEach(a => {
       const kat = a.kategori || a['category'] || '';
@@ -676,7 +666,6 @@
     });
     const totalAnggaran = Object.values(angKatMap).reduce((s, v) => s + v, 0);
 
-    // per kategori aktual
     const katMap = {};
     keluar.forEach(r => { katMap[r.kategori] = (katMap[r.kategori] || 0) + Number(r.jumlah); });
     const katSorted = Object.entries(katMap).sort((a, b) => b[1] - a[1]);
@@ -687,24 +676,24 @@
     const sisa = totalMasuk - totalKeluar - totalTabung;
     const sisaLabel = sisa >= 0 ? 'surplus' : 'defisit';
     const sisaStr   = (sisa >= 0 ? '+' : '−') + rp(Math.abs(sisa));
-
     const hasAnggaran = totalAnggaran > 0;
 
     $('dash-content').innerHTML = `
       <div class="dash-total-card">
-        <div class="dash-total-label">Pengeluaran${hasAnggaran ? ' · Anggaran ' + rp(totalAnggaran) : ''}</div>
+        <div class="dash-total-label">Pengeluaran${hasAnggaran ? '  ·  Anggaran ' + rp(totalAnggaran) : ''}</div>
         <div class="dash-total-amount">${rp(totalKeluar)}</div>
         ${totalMasuk > 0 ? `
-        <div class="dash-net" style="margin-top:10px;opacity:1;display:flex;justify-content:space-between;font-size:0.8rem">
-          <span>📥 Pendapatan</span><span>${rp(totalMasuk)}</span>
-        </div>
-        ${totalTabung > 0 ? `
-        <div class="dash-net" style="opacity:1;display:flex;justify-content:space-between;font-size:0.8rem">
-          <span>🏦 Tabungan</span><span>${rp(totalTabung)}</span>
-        </div>` : ''}
-        <div style="border-top:1px solid rgba(255,255,255,.3);margin:8px 0"></div>
-        <div class="dash-net ${sisaLabel}" style="opacity:1;display:flex;justify-content:space-between;font-weight:700">
-          <span>Sisa</span><span>${sisaStr}</span>
+        <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.2);padding-top:12px;display:flex;flex-direction:column;gap:6px">
+          <div class="dash-net" style="opacity:1;display:flex;justify-content:space-between">
+            <span>📥 Pendapatan</span><span style="font-family:var(--mono)">${rp(totalMasuk)}</span>
+          </div>
+          ${totalTabung > 0 ? `
+          <div class="dash-net" style="opacity:1;display:flex;justify-content:space-between">
+            <span>🏦 Tabungan</span><span style="font-family:var(--mono)">${rp(totalTabung)}</span>
+          </div>` : ''}
+          <div class="dash-net ${sisaLabel}" style="opacity:1;display:flex;justify-content:space-between;font-weight:700;font-size:0.88rem">
+            <span>Sisa</span><span style="font-family:var(--mono)">${sisaStr}</span>
+          </div>
         </div>` : ''}
       </div>
 
@@ -737,10 +726,8 @@
             </div>
             ${hasBudget ? `
             <div class="dash-kat-header" style="margin-bottom:6px">
-              <span class="dash-kat-budget ${cls}">
-                ${pct > 100 ? '⚠️ ' : ''}dari ${rp(budget)}
-              </span>
-              <span class="dash-kat-pct" style="${pct>100?'color:var(--red)':pct>=85?'color:#d97706':''}">${pct}%</span>
+              <span class="dash-kat-budget ${cls}">${pct > 100 ? '⚠️ ' : ''}dari ${rp(budget)}</span>
+              <span class="dash-kat-pct" style="${pct>100?'color:var(--red)':pct>=85?'color:var(--ochre)':''}">${pct}%</span>
             </div>` : ''}
             <div class="dash-bar-bg">
               <div class="dash-bar-fill ${cls}" style="width:${barW}%"></div>
@@ -773,15 +760,15 @@
           .sort((a, b) => b[1] - a[1])
           .map(([kat, jml]) => `
           <div class="dash-kat-item">
-            <div class="dash-kat-header">
+            <div class="dash-kat-header" style="margin-bottom:0">
               <span class="dash-kat-name">${kat}</span>
-              <span class="dash-kat-amount" style="color:#0891b2">${rp(jml)}</span>
+              <span class="dash-kat-amount" style="color:var(--teal)">${rp(jml)}</span>
             </div>
           </div>`).join('')}
-        <div class="dash-kat-item" style="background:#ecfdf5">
+        <div class="dash-kat-item" style="background:var(--green-soft);border-color:var(--green-soft)">
           <div class="dash-kat-header" style="margin-bottom:0">
-            <span class="dash-kat-name" style="color:#065f46">Total Tabungan</span>
-            <span class="dash-kat-amount" style="color:#065f46">${rp(totalTabung)}</span>
+            <span class="dash-kat-name" style="color:var(--green)">Total Tabungan</span>
+            <span style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:.9rem">${rp(totalTabung)}</span>
           </div>
         </div>
       </div>` : ''}
@@ -800,8 +787,6 @@
   }
 
   // filter change
-  ['fil-siapa','fil-jenis'].forEach(id => $('id' in {} ? id : id)
-    .addEventListener ? $('fil-siapa') && $('fil-jenis') : null);
   document.querySelectorAll('#fil-siapa, #fil-jenis')
     .forEach(el => el.addEventListener('change', loadRiwayat));
 </script>
