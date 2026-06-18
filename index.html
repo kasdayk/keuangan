@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#1a5f4a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -29,6 +29,7 @@
       min-height: 100vh;
       max-width: 480px;
       margin: 0 auto;
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
     /* HEADER */
@@ -142,7 +143,7 @@
     /* TOAST */
     .toast {
       position: fixed;
-      bottom: 24px;
+      bottom: max(24px, env(safe-area-inset-bottom) + 16px);
       left: 50%;
       transform: translateX(-50%) translateY(80px);
       background: var(--green);
@@ -298,13 +299,13 @@
     <div class="form-section">Detail</div>
     <div class="field" style="margin-bottom:10px">
       <label>Keterangan</label>
-      <input type="text" id="f-keterangan" placeholder="cth: Tagihan listrik Juni" required>
+      <input type="text" id="f-keterangan" placeholder="cth: Tagihan listrik Juni" enterkeyhint="next" required>
     </div>
     <div class="field">
       <label>Jumlah</label>
       <div class="jumlah-wrap">
         <span class="jumlah-prefix">Rp</span>
-        <input type="number" id="f-jumlah" placeholder="0" min="1" required>
+        <input type="number" id="f-jumlah" placeholder="0" min="1" inputmode="numeric" required>
       </div>
     </div>
 
